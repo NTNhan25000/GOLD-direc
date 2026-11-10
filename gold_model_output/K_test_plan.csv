@@ -1,0 +1,5 @@
+method,K
+Naive baseline,N/A (không huấn luyện cây)
+Linear Regression,N/A (không có siêu tham số số cây)
+Random Forest,1-500 trees; chọn theo validation RMSE
+XGBoost,1-500 boosting rounds; chọn theo validation RMSE
