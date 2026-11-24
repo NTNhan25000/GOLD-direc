@@ -1,0 +1,15 @@
+# Môi trường ảo Python
+.venv/
+venv/
+
+# Bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Hệ thống
+.DS_Store
+nohup.out
