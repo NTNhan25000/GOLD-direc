@@ -50,6 +50,10 @@ python -m pytest tests -q
 
 Mở `http://localhost:8000` để xem dashboard.
 
+Trước buổi bảo vệ, chạy `python demo_preflight.py` (ở thư mục gốc repo) để kiểm tra toàn bộ
+12 mục sẵn sàng demo, và xem [`../HUONG_DAN_DEMO.md`](../HUONG_DAN_DEMO.md) cho kịch bản
+từng phút cùng bộ câu hỏi phản biện.
+
 > **Quét K tăng tốc:** thay vì fit 500 mô hình riêng lẻ, `ml/train.py` fit
 > `RandomForest(n_estimators=500, random_state=42)` **một lần** rồi lấy trung bình tích lũy
 > trên `estimators_` (cây 1..k trùng khớp tuyệt đối mô hình fit riêng k cây, sai khác < 1e-13),

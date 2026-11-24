@@ -53,6 +53,16 @@ python gold_extra_outputs.py                 # ~36 giây
 #      ablation_macro_study,delta_target_experiment}.csv + extra_diagnostics.json + 5 PNG
 ```
 
+## Demo trước giám thị
+
+```bash
+python demo_preflight.py      # kiểm tra 12 mục: môi trường, dữ liệu, model, output, API, frontend
+```
+
+Script in **PASS/FAIL cho từng mục** kèm lệnh sửa nếu thiếu, rồi in 3 lệnh demo.
+Kịch bản chi tiết từng phút (gồm bộ câu hỏi phản biện và phương án dự phòng khi sự cố):
+[`HUONG_DAN_DEMO.md`](HUONG_DAN_DEMO.md).
+
 ## Ứng dụng fullstack
 
 ```bash
@@ -79,6 +89,8 @@ python -m pytest gold_price_fullstack/tests -q
 .
 ├── Báo_cáo_Giá_vàng_nhóm_8.docx          # báo cáo gốc (không chỉnh sửa)
 ├── README.md                              # file này
+├── HUONG_DAN_DEMO.md                      # kịch bản demo + câu hỏi phản biện
+├── demo_preflight.py                      # kiểm tra sẵn sàng demo (12 mục)
 ├── KET_QUA_DU_BAO_GIA_VANG.md             # phân tích kết quả & tiêu chí đề tài
 ├── CHI_SO_DU_BAO_THEO_NAM.md              # bảng chỉ số theo năm
 ├── requirements.txt
