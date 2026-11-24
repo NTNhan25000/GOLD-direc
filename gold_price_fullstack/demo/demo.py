@@ -7,7 +7,6 @@ Chạy từ thư mục gold_price_fullstack (hoặc bất kỳ đâu, script t�
     python demo/demo.py --date 2024-06-14  # dự báo bắt đầu từ phiên cụ thể
     python demo/demo.py --close 2650     # tự nhập giá đóng cửa (không cần --date)
 
-Không cần server API — script tự tải models/*.joblib đã huấn luyện.
 """
 from __future__ import annotations
 
