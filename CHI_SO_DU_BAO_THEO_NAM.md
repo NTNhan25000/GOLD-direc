@@ -32,9 +32,25 @@ Mỗi mô hình được so sánh trên đúng cùng 252 phiên Test. Naive Base
 
 Naive Baseline cho sai số thấp nhất trong năm Test 2024; Linear Regression đứng thứ hai. Random Forest và XGBoost có sai số lớn và R² âm. Đây là kết quả thực nghiệm của giai đoạn này, không phải khẳng định mô hình cây luôn kém trên các giai đoạn khác. Một nguyên nhân có thể là giá vàng năm 2024 đã tăng ra ngoài vùng giá mà mô hình cây học được, khiến khả năng ngoại suy của cây hạn chế.
 
+## Sai số theo quý trong năm Test 2024
+
+`gold_model_output/quarterly_test_metrics.csv` chia nhỏ năm Test để thấy sai số **tăng dần** về cuối năm
+(khi giá vàng bứt phá khỏi vùng Train):
+
+| Quý | Số phiên | Giá TB (USD) | MAE Naive | MAE Linear | MAE RF | MAE XGB |
+|---|---:|---:|---:|---:|---:|---:|
+| Q1 | 61 | 2.078 | 11.95 | 13.70 | 47.39 | 47.23 |
+| Q2 | 63 | 2.350 | 20.23 | 24.87 | 308.44 | 312.67 |
+| Q3 | 64 | 2.499 | 18.09 | 23.71 | 455.24 | 462.70 |
+| Q4 | 64 | 2.676 | 21.63 | 25.60 | 631.30 | 640.32 |
+
+Hai mô hình cây chỉ còn hợp lý ở Q1 (giá còn gần miền Train ≤ 2.000 USD); từ Q2 trở đi sai số tăng
+theo mức giá vượt trần ngoại suy (~2.080 USD với RF, ~2.046 USD với XGB).
+
 ## File dữ liệu
 
 - `gold_model_output/annual_test_metrics.csv`: bảng chỉ số dạng CSV theo năm và mô hình.
+- `gold_model_output/quarterly_test_metrics.csv`: chỉ số MAE/RMSE theo quý Q1–Q4.
 - `gold_model_output/all_model_test_predictions.csv`: dự báo và giá thực tế của cả bốn mô hình theo từng phiên Test; có `ForecastOrigin` (phiên phát dự báo) và `Date` (ngày của giá mục tiêu).
 - `gold_model_output/k_validation_test.csv`: kết quả quét K trên Validation.
 
