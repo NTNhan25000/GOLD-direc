@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dự đoán Giá Vàng — GC=F</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="chart.umd.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">Au</span>
+      <div>
+        <h1>Dự đoán Giá Vàng <small>COMEX · GC=F · USD/troy ounce</small></h1>
+        <p class="subtitle">Hồi quy chuỗi thời gian · Naive · Linear Regression · Random Forest · XGBoost</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="session-pill" id="last-session-pill">Đang tải phiên gần nhất…</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Thẻ chỉ số -->
+    <section class="cards" id="metric-cards">
+      <div class="card skeleton"></div>
+      <div class="card skeleton"></div>
+      <div class="card skeleton"></div>
+      <div class="card skeleton"></div>
+    </section>
+
+    <!-- Dự báo phiên kế tiếp -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Dự báo phiên giao dịch kế tiếp</h2>
+        <span class="hint" id="forecast-hint"></span>
+      </div>
+      <div class="forecast-grid" id="forecast-grid"></div>
+      <p class="note">Naive = giữ nguyên giá đóng cửa hiện tại (mốc cơ sở). Các mô hình còn lại dùng 25 đặc trưng
+        (giá trễ, SMA, biến động, RSI 14, biên độ High–Low, giá &amp; lợi suất DXY/US10Y/S&amp;P 500/WTI/Bạc)
+        chỉ với thông tin đến hết phiên hiện tại. Không phải khuyến nghị đầu tư.</p>
+    </section>
+
+    <!-- Biểu đồ lịch sử -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Biểu đồ giá lịch sử 2015–2024</h2>
+        <div class="tabs" id="history-tabs">
+          <button class="tab active" data-range="all">Toàn bộ</button>
+          <button class="tab" data-range="train">Train (2015–2021)</button>
+          <button class="tab" data-range="val">Validation (2022–2023)</button>
+          <button class="tab" data-range="test">Test (2024)</button>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="historyChart"></canvas></div>
+    </section>
+
+    <!-- So sánh dự báo trên Test -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Thực tế vs. Dự báo — Tập Test 2024</h2>
+        <div class="legend-static">
+          <span class="lg lg-actual">Thực tế</span>
+          <span class="lg lg-naive">Naive</span>
+          <span class="lg lg-linear">Linear Reg.</span>
+          <span class="lg lg-rf">Random Forest</span>
+          <span class="lg lg-xgb">XGBoost</span>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="testChart"></canvas></div>
+      <div class="table-wrap">
+        <table id="metrics-table">
+          <thead>
+            <tr><th>Mô hình</th><th>K</th><th>MAE ↓</th><th>RMSE ↓</th><th>MAPE ↓</th><th>R² ↑</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Dự báo thủ công -->
+    <section class="panel">
+      <div class="panel-head"><h2>Dự báo thủ công theo phiên</h2></div>
+      <form id="manual-form" class="manual-form">
+        <div class="form-row">
+          <label>Ngày phiên <input type="date" name="date" id="f-date" /></label>
+          <label>Giá đóng cửa <input type="number" step="0.01" name="gold_close" id="f-close" required /></label>
+        </div>
+        <div class="form-row">
+          <label>Mở <input type="number" step="0.01" name="gold_open" id="f-open" /></label>
+          <label>Cao <input type="number" step="0.01" name="gold_high" id="f-high" /></label>
+          <label>Thấp <input type="number" step="0.01" name="gold_low" id="f-low" /></label>
+        </div>
+        <div class="form-row">
+          <label>DXY <input type="number" step="0.001" name="dxy_close" id="f-dxy" /></label>
+          <label>US10Y <input type="number" step="0.001" name="us10y_close" id="f-teny" /></label>
+        </div>
+        <div class="form-row">
+          <label>S&amp;P 500 <input type="number" step="0.01" name="sp500_close" id="f-spx" /></label>
+          <label>WTI <input type="number" step="0.01" name="wti_close" id="f-wti" /></label>
+          <label>Bạc <input type="number" step="0.01" name="silver_close" id="f-silver" /></label>
+        </div>
+        <div class="form-actions">
+          <button type="submit">Dự báo phiên kế tiếp →</button>
+          <button type="button" id="btn-reset" class="ghost">Điền phiên cuối</button>
+        </div>
+      </form>
+      <div id="manual-result" class="manual-result hidden"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Dữ liệu: Yahoo Finance (GC=F, DXY, ^TNX, S&amp;P 500, CL=F, SI=F) · Chia tập theo thời gian:
+      Train ≤ 2021 · Validation 2022–2023 · Test 2024 · Không shuffle, scaler/imputer chỉ fit trên Train.</p>
+    <p class="disclaimer">Công cụ nghiên cứu học thuật — không phải khuyến nghị đầu tư hay cam kết lợi nhuận.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
