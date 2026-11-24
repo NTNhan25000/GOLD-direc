@@ -122,17 +122,38 @@ def main():
         print(f"[K] --fast: dùng K preset {best_k}")
     else:
         print(f"[K] quét K = 1..{args.k_max} trên validation (chọn theo RMSE thấp nhất)...")
-        for model_name in ("RandomForest", "XGBoost"):
-            local_best = None
-            for k in range(1, args.k_max + 1):
-                m = fit_final(model_name, k, Xt, yt)
-                s = scores(yv, m.predict(Xv))
-                k_rows.append({"model": model_name, "K": k, **s})
-                if local_best is None or s["RMSE"] < local_best[0]:
-                    local_best = (s["RMSE"], k)
-            best_k[model_name] = local_best[1]
-            print(f"  {model_name}: K tốt nhất = {local_best[1]} "
-                  f"(val RMSE = {local_best[0]:.3f})")
+
+        # Random Forest: cây thứ 1..k của RandomForest(n_estimators=k_max, random_state=42)
+        # trùng khớp tuyệt đối với mô hình huấn luyện riêng k cây → lấy trung bình
+        # tích lũy trên estimators_ để quét toàn bộ K chỉ với một lần fit.
+        rf_scan = RandomForestRegressor(n_estimators=args.k_max, **RF_PARAMS).fit(Xt, yt)
+        rf_cum = np.cumsum([est.predict(Xv) for est in rf_scan.estimators_], axis=0) \
+            / np.arange(1, args.k_max + 1)[:, None]
+        local_best = None
+        for k in range(1, args.k_max + 1):
+            s = scores(yv, rf_cum[k - 1])
+            k_rows.append({"model": "RandomForest", "K": k, **s})
+            if local_best is None or s["RMSE"] < local_best[0]:
+                local_best = (s["RMSE"], k)
+        best_k["RandomForest"] = local_best[1]
+        print(f"  RandomForest: K tốt nhất = {local_best[1]} (val RMSE = {local_best[0]:.3f})")
+
+        # XGBoost: tương tự với iteration_range=(0, k) trên booster đã fit k_max vòng.
+        from xgboost import XGBRegressor
+        import xgboost as xgb
+
+        xb_scan = XGBRegressor(n_estimators=args.k_max, **XGB_PARAMS).fit(Xt, yt, verbose=False)
+        booster = xb_scan.get_booster()
+        dval = xgb.DMatrix(Xv, feature_names=list(X.columns))
+        local_best = None
+        for k in range(1, args.k_max + 1):
+            s = scores(yv, booster.predict(dval, iteration_range=(0, k)))
+            k_rows.append({"model": "XGBoost", "K": k, **s})
+            if local_best is None or s["RMSE"] < local_best[0]:
+                local_best = (s["RMSE"], k)
+        best_k["XGBoost"] = local_best[1]
+        print(f"  XGBoost: K tốt nhất = {local_best[1]} (val RMSE = {local_best[0]:.3f})")
+
         pd.DataFrame(k_rows).to_csv(outputs_dir / "k_validation_scan.csv", index=False)
 
     # ------------------------------------- Fit mô hình cây trên Train+Val với K đã chọn
@@ -163,11 +184,34 @@ def main():
         preds[model_name] = m.predict(Xtest)
     preds.to_csv(outputs_dir / "test_predictions.csv", index=False)
 
-    # Feature importance (mô hình cây) — top 15.
+    # ------------------------------------------------------------------ Feature importance
+    # Xuất đầy đủ 25 đặc trưng cho cả 2 mô hình cây để dashboard/API đọc trực tiếp.
     if "RandomForest" in fitted:
-        imp = pd.Series(fitted["RandomForest"].feature_importances_, index=X.columns)
-        imp.sort_values(ascending=False).head(15).to_csv(
-            outputs_dir / "feature_importance_rf.csv", header=["importance"])
+        rf_imp = pd.DataFrame({
+            "feature": list(X.columns),
+            "MDI_pct": fitted["RandomForest"].feature_importances_ * 100.0,
+        }).sort_values("MDI_pct", ascending=False)
+        rf_imp.to_csv(outputs_dir / "feature_importance_rf.csv", index=False)
+    if "XGBoost" in fitted:
+        import xgboost as xgb
+
+        booster_final = fitted["XGBoost"].get_booster()
+        booster_final.feature_names = list(X.columns)
+        gain = booster_final.get_score(importance_type="gain")
+        weight = booster_final.get_score(importance_type="weight")
+        cover = booster_final.get_score(importance_type="cover")
+        dtest = xgb.DMatrix(Xtest, feature_names=list(X.columns))
+        shap = booster_final.predict(dtest, pred_contribs=True)[:, :-1]
+        xgb_imp = pd.DataFrame({
+            "feature": list(X.columns),
+            "gain": [gain.get(f, 0.0) for f in X.columns],
+            "weight": [weight.get(f, 0.0) for f in X.columns],
+            "cover": [cover.get(f, 0.0) for f in X.columns],
+            "mean_abs_shap_test_USD": np.abs(shap).mean(axis=0),
+        })
+        xgb_imp["gain_pct"] = 100.0 * xgb_imp["gain"] / xgb_imp["gain"].sum()
+        xgb_imp.sort_values("gain", ascending=False).to_csv(
+            outputs_dir / "feature_importance_xgb.csv", index=False)
 
     # ------------------------------------------------------------------ Lưu models
     joblib.dump(imputer, models_dir / "imputer.joblib")
@@ -179,6 +223,9 @@ def main():
                   "test": "2024-01-01 onward"},
         "n_samples": {"train": int(train_m.sum()), "val": int(val_m.sum()),
                       "test": int(test_m.sum())},
+        "n_sessions": int(len(raw)),
+        "data_range": {"start": raw.index.min().strftime("%Y-%m-%d"),
+                       "end": raw.index.max().strftime("%Y-%m-%d")},
         "best_k": best_k,
         "test_metrics": {r["model"]: {k: r[k] for k in ("MAE", "RMSE", "MAPE_pct", "R2")}
                          for r in result},
@@ -193,26 +240,57 @@ def main():
     try:
         import matplotlib
         matplotlib.use("Agg")
+        import matplotlib.dates as mdates
         import matplotlib.pyplot as plt
 
+        # Trục x phải là kiểu datetime (trước đây là chuỗi "YYYY-MM-DD" nên bị vẽ
+        # dày đặc và không đọc được).
+        pred_dt = pd.to_datetime(preds["Date"])
         fig, ax = plt.subplots(figsize=(12, 5))
-        ax.plot(preds["Date"], preds["Actual"], label="Thực tế", lw=1.6, color="#1f77b4")
-        ax.plot(preds["Date"], preds["Naive"], label="Naive", lw=1.0, alpha=0.8)
-        ax.plot(preds["Date"], preds["LinearRegression"], label="Linear Regression", lw=1.0, alpha=0.8)
+        ax.plot(pred_dt, preds["Actual"], label="Thực tế", lw=1.8, color="#111111")
+        ax.plot(pred_dt, preds["Naive"], label="Naive", lw=1.1, alpha=0.8, color="#1f77b4")
+        ax.plot(pred_dt, preds["LinearRegression"], label="Linear Regression",
+                lw=1.1, alpha=0.8, color="#ff7f0e")
         if "RandomForest" in preds:
-            ax.plot(preds["Date"], preds["RandomForest"], label="Random Forest", lw=1.0, alpha=0.8)
+            ax.plot(pred_dt, preds["RandomForest"], label="Random Forest",
+                    lw=1.1, alpha=0.8, color="#2ca02c")
         if "XGBoost" in preds:
-            ax.plot(preds["Date"], preds["XGBoost"], label="XGBoost", lw=1.0, alpha=0.8)
+            ax.plot(pred_dt, preds["XGBoost"], label="XGBoost",
+                    lw=1.1, alpha=0.8, color="#d62728")
+
         ax.set_title("Giá thực tế vs. dự báo — tập Test 2024 (USD/troy ounce)")
         ax.set_xlabel("Ngày của giá mục tiêu")
         ax.set_ylabel("USD/oz")
-        ax.legend(loc="upper left")
+        ax.legend(loc="upper left", ncol=2, fontsize=9)
         ax.grid(alpha=0.3)
-        fig.autofmt_xdate()
+        ax.xaxis.set_major_locator(mdates.MonthLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%Y"))
+        fig.autofmt_xdate(rotation=0, ha="center")
         fig.tight_layout()
         fig.savefig(outputs_dir / "test_predictions_plot.png", dpi=150)
         plt.close(fig)
         print(f"\n[plot] đã lưu {outputs_dir / 'test_predictions_plot.png'}")
+
+        # Biểu đồ Feature Importance ngang (top 15) cho cả RF và XGBoost.
+        panels = []
+        if (outputs_dir / "feature_importance_rf.csv").exists():
+            d = pd.read_csv(outputs_dir / "feature_importance_rf.csv").head(15).iloc[::-1]
+            panels.append(("RandomForest — MDI (%)", d, "MDI_pct", "#2ca02c"))
+        if (outputs_dir / "feature_importance_xgb.csv").exists():
+            d = pd.read_csv(outputs_dir / "feature_importance_xgb.csv").head(15).iloc[::-1]
+            panels.append(("XGBoost — Gain (%)", d, "gain_pct", "#d62728"))
+        if panels:
+            fig, axes = plt.subplots(1, len(panels), figsize=(13, 5.5))
+            axes = np.atleast_1d(axes)
+            for ax_i, (title, d, col, color) in zip(axes, panels):
+                ax_i.barh(d["feature"], d[col], color=color)
+                ax_i.set_title(title, fontsize=11)
+                ax_i.grid(axis="x", alpha=0.3)
+            fig.suptitle("Top 15 đặc trưng quan trọng nhất theo mô hình")
+            fig.tight_layout()
+            fig.savefig(outputs_dir / "feature_importance_plot.png", dpi=150)
+            plt.close(fig)
+            print(f"[plot] đã lưu {outputs_dir / 'feature_importance_plot.png'}")
     except Exception as e:  # matplotlib optional
         print(f"[plot] bỏ qua biểu đồ: {e}")
 

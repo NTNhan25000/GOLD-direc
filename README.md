@@ -1,14 +1,106 @@
-# GOLD-direc — dự báo giá vàng phiên kế tiếp
+# GOLD-direc — Dự báo giá vàng phiên kế tiếp (Nhóm 8)
 
-Triển khai theo báo cáo: mục tiêu là giá đóng cửa phiên kế tiếp của hợp đồng tương lai vàng COMEX `GC=F` (USD/troy ounce), dự báo một bước trước; so sánh Naive, Linear Regression, Random Forest và XGBoost. Chia dữ liệu theo thời gian Train (đến 2021), Validation (2022–2023), Test (2024); không xáo trộn. Đặc trưng kỹ thuật gồm giá trễ, SMA, biến động, RSI và biến liên thị trường có trong dataset.
+Đồ án môn **Trí tuệ Nhân tạo**: dự báo giá đóng cửa **một bước trước** (`t+1`) của hợp đồng
+tương lai vàng COMEX `GC=F` (USD/troy ounce), so sánh **Naive Baseline**, **Linear Regression**,
+**Random Forest** và **XGBoost** trên cùng một quy trình chống rò rỉ dữ liệu.
 
-## Cài đặt và chạy
+- **Dữ liệu:** 2.514 phiên 2015-01-02 → 2024-12-31 (Yahoo Finance: GC=F, DXY, ^TNX, ^GSPC, CL=F, SI=F).
+- **Chia tập theo thời gian** (căn theo ngày của giá mục tiêu): Train ≤ 2021 (1.739 mẫu) ·
+  Validation 2022–2023 (502) · Test 2024 (252). Không shuffle.
+- **25 đặc trưng:** giá trễ 0/1/2/3/5/10 phiên, SMA & độ biến động 5/10/20 phiên, RSI-14,
+  lợi suất vàng 1 phiên, biên độ High–Low, giá & lợi suất 1 phiên của DXY/US10Y/S&P 500/WTI/Bạc.
+- **K** (số cây / số vòng boosting) chọn bằng RMSE Validation; Test chỉ dùng để đánh giá cuối.
+
+## Kết quả Test 2024 (khớp báo cáo)
+
+| Mô hình | K | MAE (USD/oz) | RMSE | MAPE | R² |
+|---|---:|---:|---:|---:|---:|
+| **Naive Baseline** | — | **18.038** | **23.743** | **0.744%** | **0.9891** |
+| Linear Regression | — | 22.054 | 27.070 | 0.906% | 0.9858 |
+| Random Forest | 11 | 364.529 | 426.324 | 14.398% | −2.5165 |
+| XGBoost | 165 | 369.730 | 432.978 | 14.597% | −2.6271 |
+
+Naive thắng trên Test 2024 vì giá vàng tăng vượt xa miền quan sát của Train — mô hình cây
+không ngoại suy được. Đây là **kết quả hợp lệ về mặt học thuật** và được phân tích trung thực
+trong báo cáo; chi tiết xem [`KET_QUA_DU_BAO_GIA_VANG.md`](KET_QUA_DU_BAO_GIA_VANG.md).
+
+## Cài đặt
 
 ```bash
+python -m venv .venv && source .venv/bin/activate     # (Windows: .venv\Scripts\activate)
 python -m pip install -r requirements.txt
-python gold_predict.py --data gold_forecast_dataset_yfinance.csv
 ```
 
-Dùng file dataset hiện có trong repo, không cần gọi API. Có thể thay đường dẫn bằng `--data`. Kết quả trong `gold_model_output/`: `test_metrics.csv` (MAE, RMSE, MAPE, R² trên test), `test_predictions.csv` và `k_validation_test.csv` (thử mọi K nguyên từ 1 đến 500 cây trên validation; K tốt nhất theo RMSE được dùng để fit lại train+validation và đo test). `K_test_plan.csv` giải thích K theo từng phương pháp; Naive và hồi quy tuyến tính không có tham số số cây K.
+Repo đã kèm sẵn dataset, **không cần gọi API** khi chạy lại.
 
-Lưu ý: báo cáo mô tả XGBoost, vì vậy cần cài `xgboost`; nếu thiếu, script vẫn chạy Naive/Linear/RF và thông báo bỏ qua XGBoost. Test chỉ được dùng đánh giá sau khi chọn K trên validation. Đây là công cụ nghiên cứu, không phải khuyến nghị đầu tư hay cam kết lợi nhuận.
+## Chạy pipeline
+
+```bash
+# 1) Biểu đồ khảo sát dữ liệu & 4 tập chia
+python plot_splits.py
+#    → gold_train_plot.png, gold_val_plot.png, gold_test_plot.png, gold_comprehensive_analysis.png
+
+# 2) Pipeline chính: 4 mô hình + quét K = 1..500 trên Validation
+python gold_predict.py                       # ~6 giây (quét K tăng tốc bằng tiền tố cây tích lũy)
+python gold_predict.py --fast                # dùng K preset RF=11, XGB=165
+#    → gold_model_output/{test_metrics,k_validation_test,K_test_plan,test_predictions,
+#      all_model_test_predictions,annual_test_metrics}.csv
+
+# 3) Phân tích mở rộng (OLS, importance, ablation, ΔClose, biểu đồ)
+python gold_extra_outputs.py                 # ~36 giây
+#    → gold_model_output/{ols_diagnostics,quarterly_test_metrics,rf_feature_importance,
+#      xgb_feature_importance,xgb_learning_curve,model_detailed_summary,
+#      ablation_macro_study,delta_target_experiment}.csv + extra_diagnostics.json + 5 PNG
+```
+
+## Ứng dụng fullstack
+
+```bash
+cd gold_price_fullstack
+python ml/train.py                     # huấn luyện lại + xuất models/*.joblib (~6 giây)
+uvicorn backend.app:app --host 0.0.0.0 --port 8000
+```
+
+Mở `http://localhost:8000` — dashboard gồm: giá & dự báo phiên kế tiếp, biểu đồ lịch sử theo
+tập, thực tế vs. dự báo Test 2024, bảng metric, **biểu đồ độ quan trọng đặc trưng (RF/XGB)**,
+sai số theo quý/năm, và form dự báo thủ công. Chi tiết: [`gold_price_fullstack/README.md`](gold_price_fullstack/README.md).
+
+```bash
+# Demo CLI không cần server
+python gold_price_fullstack/demo/demo.py --close 2650
+
+# Kiểm thử tự động (16 test: chống rò rỉ, đúng metric báo cáo, toàn bộ API)
+python -m pytest gold_price_fullstack/tests -q
+```
+
+## Cấu trúc repository
+
+```
+.
+├── Báo_cáo_Giá_vàng_nhóm_8.docx          # báo cáo gốc (không chỉnh sửa)
+├── README.md                              # file này
+├── KET_QUA_DU_BAO_GIA_VANG.md             # phân tích kết quả & tiêu chí đề tài
+├── CHI_SO_DU_BAO_THEO_NAM.md              # bảng chỉ số theo năm
+├── requirements.txt
+├── Scripts.py                             # thu thập dữ liệu (yfinance/stooq/local) + chia tập
+├── plot_splits.py                         # vẽ biểu đồ khảo sát dữ liệu
+├── gold_predict.py                        # pipeline ML chính (4 mô hình, quét K)
+├── gold_extra_outputs.py                  # phân tích thống kê & thực nghiệm mở rộng
+├── gold_forecast_dataset_yfinance.csv     # dataset gốc
+├── gold_{train,val,test}_yfinance.csv     # các tập đã chia
+├── gold_model_output/                     # toàn bộ bảng CSV, JSON, biểu đồ của pipeline
+└── gold_price_fullstack/                  # ứng dụng web (FastAPI + dashboard + CLI demo + test)
+```
+
+## Ghi chú kỹ thuật
+
+- **Chống rò rỉ:** imputer/scaler chỉ `fit` trên Train; mọi đặc trưng tại phiên `t` chỉ dùng dữ liệu ≤ `t`.
+- **Quét K tăng tốc:** cây thứ `1..k` của `RandomForest(n_estimators=500, random_state=42)`
+  trùng khớp tuyệt đối với mô hình huấn luyện riêng `k` cây (sai khác < 1e-13), và XGBoost
+  hỗ trợ `booster.predict(..., iteration_range=(0, k))` — nên quét 500 giá trị K chỉ mất vài giây
+  thay vì vài phút. `pytest` có test khẳng định tính tương đương này.
+- **Giới hạn ngoại suy:** dự báo cao nhất của RF/XGB trên Test chỉ ~2.080/2.046 USD trong khi giá
+  thực tế lên tới 2.801 USD — nguyên nhân gốc của sai số lớn (xem `extra_diagnostics.json`).
+  Thực nghiệm đổi mục tiêu sang `ΔClose(t+1)` khắc phục được vấn đề này (MAE XGB 18.00 USD).
+
+> ⚠️ Công cụ nghiên cứu học thuật — **không phải khuyến nghị đầu tư**.

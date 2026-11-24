@@ -54,7 +54,7 @@ VAL_END = "2023-12-31"         # test = từ 2024-01-01 trở đi
 TRAIN_RATIO, VAL_RATIO = 0.70, 0.15
 
 # Tên file có hậu tố theo nguồn (vd gold_forecast_dataset_stooq.csv) để chạy nhiều
-# nguồn mà không ghi đè lên nhau, và có thể đối chiếu bằng compare_sources.py
+# nguồn dữ liệu khác nhau mà không ghi đè lên nhau.
 OUTPUT_FULL = f"gold_forecast_dataset_{SOURCE}.csv"
 OUTPUT_TRAIN = f"gold_train_{SOURCE}.csv"
 OUTPUT_VAL = f"gold_val_{SOURCE}.csv"

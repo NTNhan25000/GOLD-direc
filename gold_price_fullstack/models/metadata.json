@@ -44,6 +44,11 @@
     "val": 502,
     "test": 252
   },
+  "n_sessions": 2514,
+  "data_range": {
+    "start": "2015-01-02",
+    "end": "2024-12-31"
+  },
   "best_k": {
     "RandomForest": 11,
     "XGBoost": 165
@@ -75,6 +80,6 @@
     }
   },
   "data_file": "/home/user/GOLD-direc/gold_price_fullstack/data/raw/gold_forecast_dataset.csv",
-  "trained_at": "2026-11-24 07:19:34",
-  "training_seconds": 702.4
+  "trained_at": "2026-11-24 08:59:09",
+  "training_seconds": 4.0
 }

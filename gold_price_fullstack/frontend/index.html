@@ -79,14 +79,60 @@
       </div>
     </section>
 
+    <!-- Độ quan trọng đặc trưng -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Độ quan trọng của 25 đặc trưng</h2>
+        <div class="tabs" id="importance-tabs">
+          <button class="tab active" data-model="rf">Random Forest · MDI</button>
+          <button class="tab" data-model="xgb">XGBoost · Gain</button>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="importanceChart"></canvas></div>
+      <p class="note" id="importance-note">
+        MDI (Mean Decrease in Impurity) đo mức giảm phương sai khi chia nhánh; Gain đo mức cải thiện
+        hàm mất mát trung bình mỗi lần chia của XGBoost. Cả hai đều cho thấy nhóm đặc trưng giá trễ
+        (close_lag_0, close_lag_1) và SMA là yếu tố quyết định, các biến vĩ mô chỉ đóng góp biên.
+      </p>
+    </section>
+
+    <!-- Sai số theo quý / năm -->
+    <section class="two-col">
+      <div class="panel">
+        <div class="panel-head"><h2>Sai số theo quý — Test 2024</h2></div>
+        <div class="table-wrap">
+          <table id="quarterly-table">
+            <thead><tr><th>Quý</th><th>Số phiên</th><th>Naive</th><th>Linear</th><th>RF</th><th>XGB</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="note">MAE (USD/oz) từng quý. Sai số của RF/XGB tăng dần về cuối năm khi giá vượt
+          vùng quan sát của Train (giới hạn ngoại suy của mô hình cây).</p>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Sai số theo năm — Test</h2></div>
+        <div class="table-wrap">
+          <table id="annual-table">
+            <thead><tr><th>Năm</th><th>Số phiên</th><th>Naive</th><th>Linear</th><th>RF</th><th>XGB</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="note" id="annual-note">Tổng hợp MAE/RMSE theo năm của tập Test (2024).</p>
+      </div>
+    </section>
+
     <!-- Dự báo thủ công -->
     <section class="panel">
       <div class="panel-head"><h2>Dự báo thủ công theo phiên</h2></div>
       <form id="manual-form" class="manual-form">
         <div class="form-row">
           <label>Ngày phiên <input type="date" name="date" id="f-date" /></label>
-          <label>Giá đóng cửa <input type="number" step="0.01" name="gold_close" id="f-close" required /></label>
+          <label>Giá đóng cửa * <input type="number" step="0.01" name="gold_close" id="f-close" required /></label>
         </div>
+        <p class="note" style="margin:0 0 2px">
+          Chỉ cần <b>giá đóng cửa</b>. Các ô còn lại để trống sẽ tự động lấy từ phiên gần nhất
+          (riêng Open/High/Low được suy ra từ giá đóng cửa nếu bỏ trống).
+        </p>
         <div class="form-row">
           <label>Mở <input type="number" step="0.01" name="gold_open" id="f-open" /></label>
           <label>Cao <input type="number" step="0.01" name="gold_high" id="f-high" /></label>
@@ -104,6 +150,7 @@
         <div class="form-actions">
           <button type="submit">Dự báo phiên kế tiếp →</button>
           <button type="button" id="btn-reset" class="ghost">Điền phiên cuối</button>
+          <button type="button" id="btn-clear" class="ghost">Xoá trắng</button>
         </div>
       </form>
       <div id="manual-result" class="manual-result hidden"></div>

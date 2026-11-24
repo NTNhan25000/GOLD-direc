@@ -1,0 +1,28 @@
+{
+  "ols": {
+    "train_r2": 0.9972137349989852,
+    "durbin_watson_train": 2.0104098038559304,
+    "durbin_watson_test": 1.513093537582584,
+    "n_vif_gt_10": 11,
+    "max_vif": 17593.125464639856,
+    "n_significant_p005": 8
+  },
+  "rf_oob": {
+    "MAE": 12.105886118119244,
+    "RMSE": 17.04759105670391,
+    "MAPE_pct": 0.7840586572673222,
+    "R2": 0.9968278198164618,
+    "n_oob_valid": 2226,
+    "n_total": 2241
+  },
+  "rf_extrapolation": {
+    "max_pred_USD": 2079.823005709297,
+    "max_actual_USD": 2800.800048828125,
+    "n_sessions_above_max_pred": 211
+  },
+  "xgb_extrapolation": {
+    "max_pred_USD": 2045.6026611328125,
+    "max_actual_USD": 2800.800048828125,
+    "n_sessions_above_max_pred": 223
+  }
+}
