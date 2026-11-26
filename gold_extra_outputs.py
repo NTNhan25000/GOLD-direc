@@ -352,7 +352,7 @@ def main() -> None:
         "cover": [float(cover_map.get(f, 0.0)) for f in feature_names],
         "mean_abs_SHAP_val_USD": np.mean(np.abs(shap_val), axis=0),
         "mean_abs_SHAP_test_USD": np.mean(np.abs(shap_test), axis=0),
-    }).sort_values("mean_abs_SHAP_val_USD", ascending=False)
+    }).sort_values("gain_pct", ascending=False)   # CSV xếp theo Gain (cột quan trọng đầu tiên)
     xgb_imp_df.to_csv(out / "xgb_feature_importance.csv", index=False)
 
     # ------------------------------------------------------------------ 6. Detailed Model Summary
@@ -547,7 +547,7 @@ def main() -> None:
     plt.close(fig)
 
     # (d) Top 12 đặc trưng theo TreeSHAP của XGBoost
-    top_shap = xgb_imp_df.head(12).iloc[::-1]
+    top_shap = xgb_imp_df.sort_values("mean_abs_SHAP_val_USD", ascending=False).head(12).iloc[::-1]
     fig, ax = plt.subplots(figsize=(9.5, 5.2))
     ax.barh(top_shap["feature"], top_shap["mean_abs_SHAP_val_USD"], color="#ca5b16", alpha=0.88)
     ax.set_title("Top 12 đặc trưng đóng góp lớn nhất theo TreeSHAP — XGBoost (K = 165)", fontweight="bold")
