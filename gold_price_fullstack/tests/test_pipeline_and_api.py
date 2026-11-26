@@ -20,6 +20,11 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]          # .../gold_price_fullstack
 REPO_ROOT = ROOT.parent
 
+# Cho phép chạy `pytest gold_price_fullstack/tests` từ thư mục gốc repo
+# (khi đó `ml` và `backend` chưa nằm trên sys.path).
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 
 @pytest.fixture(scope="session")
 def raw() -> pd.DataFrame:
