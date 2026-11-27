@@ -13,3 +13,6 @@ __pycache__/
 # Hệ thống
 .DS_Store
 nohup.out
+
+# Ảnh QA render slide (sinh lại bằng preview_slides.py)
+slide_preview/
