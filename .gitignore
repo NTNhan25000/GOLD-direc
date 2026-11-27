@@ -16,3 +16,7 @@ nohup.out
 
 # Ảnh QA render slide (sinh lại bằng preview_slides.py)
 slide_preview/
+
+# Sinh ra khi chạy model_training/train.py (tái tạo được)
+model_training/artifacts/
+model_training/outputs/

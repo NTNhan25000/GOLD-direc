@@ -63,6 +63,21 @@ Script in **PASS/FAIL cho từng mục** kèm lệnh sửa nếu thiếu, rồi 
 Kịch bản chi tiết từng phút (gồm bộ câu hỏi phản biện và phương án dự phòng khi sự cố):
 [`HUONG_DAN_DEMO.md`](HUONG_DAN_DEMO.md).
 
+## Code huấn luyện độc lập
+
+[`model_training/`](model_training/) là bản copy tự chạy của `gold_price_fullstack/ml/`
+(features + train), kèm dữ liệu — không import gì từ `gold_price_fullstack/`:
+
+```bash
+.venv/bin/python model_training/train.py            # quét K 1..500 trên Validation (~6 giây)
+.venv/bin/python model_training/train.py --fast     # dùng K preset RF=11, XGB=165 (~5 giây)
+.venv/bin/python -m pytest model_training/test_train.py -q   # 6 test
+```
+
+Tự tìm lại đúng **K = 11 / 165** và tái lập bảng Test lệch **0.00e+00** so với báo cáo.
+Artifact sinh ra dùng lẫn được với `model_joblib/joblib_loader.py`.
+Chi tiết: [`model_training/README.md`](model_training/README.md).
+
 ## Folder `.joblib` độc lập
 
 [`model_joblib/`](model_joblib/) là folder **tự chạy được một mình**, chứa 4 file mô hình đã
@@ -113,6 +128,7 @@ python -m pytest gold_price_fullstack/tests -q
 ├── KICH_BAN_THUYET_TRINH.md               # kịch bản thuyết trình 10 slide + Q&A
 ├── slides_thuyet_trinh_nhom8.pptx         # bộ slide 10 slide (nền trắng)
 ├── make_slides.py                         # dựng lại .pptx từ CSV (không gõ tay số)
+├── model_training/                        # code huấn luyện độc lập (features + train + data)
 ├── model_joblib/                          # folder .joblib độc lập (loader + test + data)
 ├── make_importance_chart.py               # vẽ biểu đồ importance cỡ slide
 ├── check_slides.py                        # dò tràn chữ / đè lớp trong .pptx
