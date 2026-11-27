@@ -63,6 +63,15 @@ Script in **PASS/FAIL cho từng mục** kèm lệnh sửa nếu thiếu, rồi 
 Kịch bản chi tiết từng phút (gồm bộ câu hỏi phản biện và phương án dự phòng khi sự cố):
 [`HUONG_DAN_DEMO.md`](HUONG_DAN_DEMO.md).
 
+## Tài liệu khái niệm
+
+[`GIAI_THICH_KHAI_NIEM.md`](GIAI_THICH_KHAI_NIEM.md) — tra cứu **khái niệm, công thức, thuật
+ngữ** của đề tài: hồi quy & rò rỉ dữ liệu, 25 đặc trưng (SMA, RSI, lag), 4 mô hình
+(Naive/OLS/RF/XGBoost), MAE · RMSE · MAPE · R², chẩn đoán ngoại suy, VIF, p-value,
+Durbin–Watson, MDI/Gain/permutation/SHAP, kèm bảng thuật ngữ và mục **"những chỗ dễ hiểu sai"**.
+Mỗi công thức đều có ví dụ số thật đọc từ `gold_model_output/` — kiểm chứng lại được bằng
+các lệnh ở mục 9 của tài liệu.
+
 ## Code huấn luyện độc lập
 
 [`model_training/`](model_training/) là bản copy tự chạy của `gold_price_fullstack/ml/`
@@ -132,6 +141,7 @@ python -m pytest gold_price_fullstack/tests -q
 ├── README.md                              # file này
 ├── HUONG_DAN_DEMO.md                      # kịch bản demo + câu hỏi phản biện
 ├── KICH_BAN_THUYET_TRINH.md               # kịch bản thuyết trình 10 slide + Q&A
+├── GIAI_THICH_KHAI_NIEM.md                # giải thích khái niệm, công thức, thuật ngữ
 ├── slides_thuyet_trinh_nhom8.pptx         # bộ slide 10 slide (nền trắng)
 ├── make_slides.py                         # dựng lại .pptx từ CSV (không gõ tay số)
 ├── model_training/                        # code huấn luyện độc lập (features + train + data)
