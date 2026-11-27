@@ -63,6 +63,13 @@ Script in **PASS/FAIL cho từng mục** kèm lệnh sửa nếu thiếu, rồi 
 Kịch bản chi tiết từng phút (gồm bộ câu hỏi phản biện và phương án dự phòng khi sự cố):
 [`HUONG_DAN_DEMO.md`](HUONG_DAN_DEMO.md).
 
+## Slide thuyết trình
+
+Bộ slide chính thức: **`slides_thuyet_trinh_nhom8.pptx` — 10 slide, nền trắng, 16:9**
+(dựng lại bằng `python make_slides.py`, kiểm tra layout bằng `python check_slides.py`).
+Lời thoại từng slide, phân bổ thời gian 13 phút, bộ câu hỏi phản biện và bản rút gọn 7 phút:
+[`KICH_BAN_THUYET_TRINH.md`](KICH_BAN_THUYET_TRINH.md).
+
 ## Ứng dụng fullstack
 
 ```bash
@@ -90,6 +97,13 @@ python -m pytest gold_price_fullstack/tests -q
 ├── Báo_cáo_Giá_vàng_nhóm_8.docx          # báo cáo gốc (không chỉnh sửa)
 ├── README.md                              # file này
 ├── HUONG_DAN_DEMO.md                      # kịch bản demo + câu hỏi phản biện
+├── KICH_BAN_THUYET_TRINH.md               # kịch bản thuyết trình 10 slide + Q&A
+├── slides_thuyet_trinh_nhom8.pptx         # bộ slide 10 slide (nền trắng)
+├── make_slides.py                         # dựng lại .pptx từ CSV (không gõ tay số)
+├── make_importance_chart.py               # vẽ biểu đồ importance cỡ slide
+├── check_slides.py                        # dò tràn chữ / đè lớp trong .pptx
+├── preview_slides.py                      # render .pptx ra PNG để tự kiểm tra layout
+├── Y_TUONG_SLIDE.md                       # dàn ý & câu chuyện xuyên suốt của slide
 ├── demo_preflight.py                      # kiểm tra sẵn sàng demo (12 mục)
 ├── KET_QUA_DU_BAO_GIA_VANG.md             # phân tích kết quả & tiêu chí đề tài
 ├── CHI_SO_DU_BAO_THEO_NAM.md              # bảng chỉ số theo năm

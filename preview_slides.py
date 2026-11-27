@@ -65,7 +65,7 @@ def wrap(draw, text, fnt, max_w):
 
 def render(idx: int):
     slide = prs.slides[idx]
-    img = Image.new("RGB", (px(prs.slide_width), px(prs.slide_height)), "#10141C")
+    img = Image.new("RGB", (px(prs.slide_width), px(prs.slide_height)), "#FFFFFF")
     d = ImageDraw.Draw(img)
 
     for shape in slide.shapes:
@@ -115,8 +115,8 @@ def render(idx: int):
                         rgb = cell.fill.fore_color.rgb
                         fill = f"#{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
                     except Exception:
-                        fill = "#1A202E"
-                    d.rectangle([x, y, x + cw, y + rh], fill=fill, outline="#2A3550")
+                        fill = "#F5F7FB"
+                    d.rectangle([x, y, x + cw, y + rh], fill=fill, outline="#D3DDEA")
                     txt = cell.text.replace("\n", " ")
                     if txt:
                         run = cell.text_frame.paragraphs[0].runs
@@ -126,7 +126,7 @@ def render(idx: int):
                             col = run[0].font.color.rgb
                             col = f"#{col[0]:02X}{col[1]:02X}{col[2]:02X}"
                         except Exception:
-                            col = "#FFFFFF"
+                            col = "#0F1726"
                         fnt = font(size, bold)
                         align_right = cell.text_frame.paragraphs[0].alignment == 3
                         tw = d.textlength(txt, font=fnt)
@@ -154,7 +154,7 @@ def render(idx: int):
                     rgb = p.runs[0].font.color.rgb
                     col = f"#{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
                 except Exception:
-                    col = "#FFFFFF"
+                    col = "#0F1726"
                 align = p.alignment
                 for line in (full.split("\n") or [""]):
                     for sub in wrap(d, line, fnt, Wd) if Wd > 20 else [line]:
