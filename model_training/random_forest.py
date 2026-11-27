@@ -74,11 +74,14 @@ def scan_k(X, y, target_dates, k_max: int = 500) -> pd.DataFrame:
     một lần rồi lấy trung bình tích lũy trên estimators_ → 500 K chỉ mất vài giây.
     """
     masks = split_masks(target_dates)
-    Xt = X.loc[masks["train"]]
-    Xv = X.loc[masks["val"]]
+    # Dùng numpy (không phải DataFrame) khi quét: từng cây con bên trong rừng không
+    # lưu feature names, truyền DataFrame vào sẽ sinh UserWarning cho mỗi cây.
+    Xt = X.loc[masks["train"]].to_numpy()
+    Xv = X.loc[masks["val"]].to_numpy()
     yv = y.loc[masks["val"]]
 
-    scan = RandomForestRegressor(n_estimators=k_max, **RF_PARAMS).fit(Xt, y.loc[masks["train"]])
+    scan = RandomForestRegressor(n_estimators=k_max, **RF_PARAMS).fit(
+        Xt, y.loc[masks["train"]].to_numpy())
     cum = (np.cumsum([est.predict(Xv) for est in scan.estimators_], axis=0)
            / np.arange(1, k_max + 1)[:, None])
     return pd.DataFrame([
