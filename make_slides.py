@@ -338,15 +338,15 @@ s = slide()
 title(s, "Cuối phiên t chỉ biết dữ liệu ≤ t, mục tiêu là giá đóng cửa phiên t + 1",
       kicker="Phát biểu bài toán & dữ liệu")
 
-panel(s, Inches(0.7), Inches(1.72), Inches(11.93), Inches(1.12), PANEL2)
+panel(s, Inches(0.7), Inches(1.7), Inches(11.93), Inches(0.95), PANEL2)
 txt(s, "ŷ(t + 1) = f( X(t) )        với        y(t) = Close(t + 1)",
-    Inches(1.0), Inches(1.9), Inches(11.3), Inches(0.5), size=24, bold=True, color=GOLD,
+    Inches(1.0), Inches(1.85), Inches(11.3), Inches(0.45), size=22, bold=True, color=GOLD,
     align=PP_ALIGN.CENTER)
 txt(s, "X(t): 25 đặc trưng chỉ tính từ dữ liệu ≤ t · 16 test tự động kiểm chứng chống rò rỉ",
-    Inches(1.0), Inches(2.42), Inches(11.3), Inches(0.3), size=11.5, color=MUTED,
+    Inches(1.0), Inches(2.28), Inches(11.3), Inches(0.28), size=11, color=MUTED,
     align=PP_ALIGN.CENTER)
 
-y_axis = Inches(3.55)
+y_axis = Inches(3.28)
 ln = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1.2), y_axis, Inches(10.9), Pt(2))
 ln.fill.solid()
 ln.fill.fore_color.rgb = LINE
@@ -365,19 +365,19 @@ for cx, label, sub, col in [
     d.fill.fore_color.rgb = col
     d.line.fill.background()
     d.shadow.inherit = False
-    txt(s, label, cx - Inches(1.2), y_axis - Inches(0.62), Inches(2.4), Inches(0.35),
-        size=13, bold=True, align=PP_ALIGN.CENTER, color=INK)
-    txt(s, sub, cx - Inches(1.2), y_axis + Inches(0.26), Inches(2.4), Inches(0.35),
-        size=10.5, color=MUTED, align=PP_ALIGN.CENTER)
+    txt(s, label, cx - Inches(1.2), y_axis - Inches(0.52), Inches(2.4), Inches(0.32),
+        size=12.5, bold=True, align=PP_ALIGN.CENTER, color=INK)
+    txt(s, sub, cx - Inches(1.2), y_axis + Inches(0.22), Inches(2.4), Inches(0.32),
+        size=10, color=MUTED, align=PP_ALIGN.CENTER)
 
-chip(s, Inches(0.7), Inches(4.4), Inches(2.9), "2.514", "phiên giao dịch, 2015 → 2024",
-     GOLD, 25, Inches(1.02))
-chip(s, Inches(3.72), Inches(4.4), Inches(2.9), "10 cột · 0 NaN", "OHLCV vàng + 5 chuỗi vĩ mô",
-     BLUE, 18, Inches(1.02))
-chip(s, Inches(6.74), Inches(4.4), Inches(2.9), "6", "nguồn dữ liệu Yahoo Finance",
-     GREEN, 25, Inches(1.02))
-chip(s, Inches(9.76), Inches(4.4), Inches(2.87), "1.050,8 – 2.800,8", "USD/oz, biên giá 10 năm",
-     PURPLE, 16, Inches(1.02))
+chip(s, Inches(0.7), Inches(4.02), Inches(2.9), "2.514", "phiên giao dịch, 2015 → 2024",
+     GOLD, 22, Inches(0.9))
+chip(s, Inches(3.72), Inches(4.02), Inches(2.9), "10 cột · 0 NaN", "OHLCV vàng + 5 chuỗi vĩ mô",
+     BLUE, 16, Inches(0.9))
+chip(s, Inches(6.74), Inches(4.02), Inches(2.9), "6", "nguồn dữ liệu Yahoo Finance",
+     GREEN, 22, Inches(0.9))
+chip(s, Inches(9.76), Inches(4.02), Inches(2.87), "1.050,8 – 2.800,8", "USD/oz, biên giá 10 năm",
+     PURPLE, 14, Inches(0.9))
 
 groups = [
     ("Giá trễ  (6)", "close_lag 0 · 1 · 2 · 3 · 5 · 10", BLUE),
@@ -387,11 +387,32 @@ groups = [
 ]
 for i, (name, detail, col) in enumerate(groups):
     x = Inches(0.7) + i * Inches(3.02)
-    panel(s, x, Inches(5.57), Inches(2.87), Inches(1.02), PANEL, line=LINE)
-    txt(s, name, x + Inches(0.22), Inches(5.7), Inches(2.5), Inches(0.3), size=11.5,
+    panel(s, x, Inches(5.0), Inches(2.87), Inches(0.72), PANEL, line=LINE)
+    txt(s, name, x + Inches(0.22), Inches(5.08), Inches(2.5), Inches(0.26), size=10.5,
         bold=True, color=col)
-    txt(s, detail, x + Inches(0.22), Inches(6.03), Inches(2.5), Inches(0.4), size=9.5,
-        color=MUTED, spacing=1.1)
+    txt(s, detail, x + Inches(0.22), Inches(5.35), Inches(2.5), Inches(0.32), size=8.8,
+        color=MUTED, spacing=1.05)
+
+# ------------------------------------------------- Dải TIỀN XỬ LÝ (4 bước)
+PRE_Y = Inches(5.74)
+txt(s, "TIỀN XỬ LÝ", Inches(0.7), PRE_Y, Inches(1.4), Inches(0.26), size=9.5,
+    color=GOLD, bold=True)
+
+pre = [
+    ("1. Forward-fill", "5 chuỗi vĩ mô lấp theo lịch nghỉ sàn vàng;\n"
+                        "không nội suy tuyến tính (tránh dữ liệu giả)", BLUE),
+    ("2. Imputer median", "điền NaN còn lại bằng trung vị,\nchỉ fit trên Train", GREEN),
+    ("3. Chuẩn hoá", "StandardScaler cho Linear Regression,\nchỉ fit trên Train", ORANGE),
+    ("4. Kiểm tra ngoại lệ", "0 NaN · 0 trùng ngày · OHLC nhất quán\n"
+                             "giữ COVID & WTI âm: sự kiện thật", PURPLE),
+]
+for i, (name, detail, col) in enumerate(pre):
+    x = Inches(0.7) + i * Inches(3.02)
+    panel(s, x, PRE_Y + Inches(0.26), Inches(2.87), Inches(0.9), PANEL, line=LINE)
+    txt(s, name, x + Inches(0.2), PRE_Y + Inches(0.32), Inches(2.5), Inches(0.22),
+        size=9.8, bold=True, color=col)
+    txt(s, detail, x + Inches(0.2), PRE_Y + Inches(0.55), Inches(2.62), Inches(0.56),
+        size=8.2, color=MUTED, spacing=1.05)
 footer(s, 3, TOTAL)
 
 # ============================================ SLIDE 4 — Thiết lập thực nghiệm

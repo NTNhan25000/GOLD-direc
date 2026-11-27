@@ -15,10 +15,10 @@
 | Slide | Nội dung | Phút | Cộng dồn |
 |---|---|---:|---:|
 | 1 | Bìa | 0:30 | 0:30 |
-| 2 | Đặt vấn đề & 3 câu hỏi nghiên cứu | 1:15 | 1:45 |
-| 3 | Phát biểu bài toán & dữ liệu | 1:30 | 3:15 |
-| 4 | Thiết lập thực nghiệm (chia tập, 4 mô hình, K) | 1:30 | 4:45 |
-| 5 | Chọn K trên Validation | 1:00 | 5:45 |
+| 2 | Đặt vấn đề & 3 câu hỏi nghiên cứu | 1:05 | 1:35 |
+| 3 | Phát biểu bài toán, dữ liệu & **tiền xử lý** | 1:50 | 3:35 |
+| 4 | Thiết lập thực nghiệm (chia tập, 4 mô hình, K) | 1:20 | 4:55 |
+| 5 | Chọn K trên Validation | 0:55 | 5:50 |
 | 6 | **Kết quả Test 2024 — kết quả gây bất ngờ** | 1:30 | 7:15 |
 | 7 | Chẩn đoán: vì sao cây thua | 1:45 | 9:00 |
 | 8 | Ablation (CH2) + độ quan trọng đặc trưng (CH3) | 1:45 | 10:45 |
@@ -109,10 +109,19 @@ cd gold_price_fullstack && ../.venv/bin/python -m uvicorn backend.app:app --host
 > (chỉ 4 nhóm biến) "Từ đó nhóm tạo **25 đặc trưng**: 6 giá trễ, 6 trung bình động và biến
 > động, 3 chỉ báo động lượng, và 10 biến liên thị trường."
 
+> (chỉ dải TIỀN XỬ LÝ dưới) "Phần **tiền xử lý** gồm bốn bước, và mỗi bước đều có lý do:
+> **Một**, sàn vàng và chứng khoán nghỉ khác ngày nên 5 chuỗi vĩ mô được **forward-fill** —
+> tuyệt đối **không nội suy tuyến tính**, vì nội suy sẽ tạo ra giá trị chưa từng tồn tại ở
+> thời điểm đó. **Hai**, số NaN còn lại được điền bằng **trung vị của Train**.
+> **Ba**, Linear Regression cần **chuẩn hoá** vì 25 biến có đơn vị khác nhau — và cả imputer
+> lẫn scaler đều **chỉ fit trên Train**. **Bốn**, nhóm **kiểm tra ngoại lệ**: kết quả là
+> 0 NaN, 0 ngày trùng, OHLC nhất quán 100%; có COVID tháng 3/2020 và WTI âm tháng 4/2020
+> nhưng đó là **sự kiện thật**, nên nhóm **chủ động giữ lại** thay vì xoá."
+
 > "Và quan trọng: **16 test tự động** kiểm tra rằng mọi đặc trưng tại phiên t chỉ sinh từ
 > dữ liệu ≤ t."
 
-**Chuyển:** "Với dữ liệu đã sạch, tiếp theo là thiết lập thực nghiệm."
+**Chuyển:** "Dữ liệu đã sạch và tiền xử lý xong — tiếp theo là thiết lập thực nghiệm."
 
 ---
 

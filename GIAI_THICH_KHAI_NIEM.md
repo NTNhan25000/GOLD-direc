@@ -122,7 +122,38 @@ Tương quan với giá vàng trên toàn bộ 2.514 phiên:
 vàng nhưng cả hai cùng đi theo xu hướng thời gian — đây là **tương quan giả** do chuỗi không
 dừng. Thực nghiệm ablation (mục 5.2) cho thấy thêm 10 biến này **làm mô hình tệ đi**.
 
-### 2.6 Forward-fill và vì sao không nội suy
+### 2.6 Quy trình tiền xử lý (4 bước, theo đúng thứ tự)
+
+Slide 3 của bộ thuyết trình tóm tắt 4 bước này; dưới đây là bản đầy đủ.
+
+| Bước | Làm gì | Vì sao đúng thứ tự này |
+|---|---|---|
+| 1. **Forward-fill** 5 chuỗi vĩ mô | điền giá trị gần nhất trước đó vào ngày nghỉ | phải làm **trước** khi tạo đặc trưng, nếu không `pct_change` của cột vĩ mô sẽ ra NaN |
+| 2. **Imputer (median)** | điền NaN còn lại (chủ yếu do rolling window đầu chuỗi) | phải dùng **median của Train**, không dùng của toàn bộ dữ liệu |
+| 3. **Chuẩn hoá (StandardScaler)** | đưa 25 biến về cùng thang đo, **chỉ cho Linear Regression** | cây không cần và không nên chuẩn hoá; LR thì bắt buộc vì USD và % lệch nhau hàng nghìn lần |
+| 4. **Kiểm tra ngoại lệ** | quét NaN, ngày trùng, OHLC nhất quán, lợi suất bất thường | làm **sau** khi có dữ liệu sạch để không báo động giả |
+
+Kết quả bước 4 trên dữ liệu thật:
+
+| Kiểm tra | Kết quả |
+|---|---|
+| NaN / ngày trùng / ngày đơn điệu | 0 / 0 / ✓ |
+| `High < Close`, `Low > Close`, `High < Low` | 0 / 0 / 0 |
+| Khoảng trống lớn nhất | 4 ngày |
+| Lợi suất vàng \|r\| > 5% | **2 phiên** (23–24/03/2020, COVID) |
+| WTI có giá âm | **1 phiên** (−37,63 USD, 20/04/2020) |
+| US10Y \|r\| > 10% | 26 phiên — do lợi suất về 0,5%, **không phải lỗi** |
+
+**Quyết định quan trọng: KHÔNG xoá ngoại lệ.** COVID 2020 và WTI âm là sự kiện thị trường
+thật; nếu xoá thì mô hình chỉ học thị trường yên bình và **thất bại nặng hơn** trên Test thật.
+Đo tác động: bỏ 2 phiên \|r\|>5% khỏi Train chỉ đổi hệ số `close_lag_0` từ 0,999014 xuống
+0,998843 — chênh 0,0002, không đáng kể.
+
+**Điểm yếu đã ghi nhận:** `pct_change()` không dùng được khi mẫu số ≤ 0, nên
+`WTI_Close_return_1d` có 2 giá trị vô nghĩa (−305,97% và −126,60%) nằm trong Train. Cần thay
+bằng 0 khi giá hiện tại hoặc giá trước ≤ 0.
+
+### 2.7 Forward-fill và vì sao không nội suy
 
 Sàn vàng và thị trường chứng khoán nghỉ khác ngày. Cột vĩ mô được **forward-fill** (lấy giá
 trị gần nhất trước đó):
