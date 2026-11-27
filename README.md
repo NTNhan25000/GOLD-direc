@@ -68,15 +68,21 @@ Kịch bản chi tiết từng phút (gồm bộ câu hỏi phản biện và ph
 [`model_training/`](model_training/) là bản copy tự chạy của `gold_price_fullstack/ml/`
 (features + train), kèm dữ liệu — không import gì từ `gold_price_fullstack/`:
 
+Mỗi mô hình nằm trong **một file riêng**, tự mang siêu tham số của nó:
+
 ```bash
-.venv/bin/python model_training/train.py            # quét K 1..500 trên Validation (~6 giây)
-.venv/bin/python model_training/train.py --fast     # dùng K preset RF=11, XGB=165 (~5 giây)
-.venv/bin/python -m pytest model_training/test_train.py -q   # 6 test
+.venv/bin/python model_training/baseline_naive.py       # Naive     ŷ = Close(t)
+.venv/bin/python model_training/linear_regression.py    # LR        Pipeline: scaler → OLS
+.venv/bin/python model_training/random_forest.py        # RF        quét K → 11 cây
+.venv/bin/python model_training/xgboost_model.py        # XGB       quét K → 165 vòng
+.venv/bin/python model_training/run_all.py --fast       # cả 4 mô hình, bảng so sánh
 ```
 
-Tự tìm lại đúng **K = 11 / 165** và tái lập bảng Test lệch **0.00e+00** so với báo cáo.
-Artifact sinh ra dùng lẫn được với `model_joblib/joblib_loader.py`.
-Chi tiết: [`model_training/README.md`](model_training/README.md).
+File gộp (giống bản gốc, xuất `artifacts/` + `metadata.json`):
+`python model_training/train.py [--fast]` — tự tìm lại đúng **K = 11 / 165**, tái lập bảng
+Test lệch **0.00e+00**. Artifact dùng lẫn được với `model_joblib/joblib_loader.py`.
+Test: `python -m pytest model_training -q` (16 test). Chi tiết:
+[`model_training/README.md`](model_training/README.md).
 
 ## Folder `.joblib` độc lập
 

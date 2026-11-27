@@ -5,6 +5,8 @@ mục tiêu y(t) = Close(t+1). Tuân thủ chống rò rỉ dữ liệu (no leak
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -95,3 +97,32 @@ def scores(y_true, y_pred) -> dict[str, float]:
         "MAPE_pct": float(np.mean(np.abs((y_true - y_pred) / y_true)) * 100),
         "R2": float(r2_score(y_true, y_pred)),
     }
+
+
+DEFAULT_DATA = Path(__file__).resolve().parent / "data" / "gold_forecast_dataset.csv"
+
+
+def load_raw(path: str | Path | None = None) -> pd.DataFrame:
+    """Đọc CSV thô, index theo ngày, sắp tăng dần (cùng định dạng với lúc huấn luyện)."""
+    p = Path(path) if path else DEFAULT_DATA
+    return pd.read_csv(p, parse_dates=["Date"]).set_index("Date").sort_index()
+
+
+def latest_features(raw: pd.DataFrame, close_override: float | None = None) -> pd.DataFrame:
+    """Hàng đặc trưng của PHIÊN GẦN NHẤT để dự báo phiên kế tiếp.
+
+    Phải dùng drop_unlabeled=False: nếu dùng drop_unlabeled=True thì phiên cuối cùng
+    bị loại (vì chưa có nhãn t+1) và ta sẽ dự báo lùi mất một phiên — kết quả lệch
+    khoảng 15–20 USD so với đúng.
+
+    close_override: thay giá đóng cửa của phiên cuối bằng số nhập tay; High/Low được
+    nới ra để bao lấy giá mới (nếu không gold_range sẽ ra số vô nghĩa).
+    """
+    base = raw.copy()
+    if close_override is not None:
+        last = base.index[-1]
+        base.at[last, TARGET] = float(close_override)
+        base.at[last, "Gold_High"] = max(float(base.at[last, "Gold_High"]), close_override)
+        base.at[last, "Gold_Low"] = min(float(base.at[last, "Gold_Low"]), close_override)
+    X, _, _ = make_features(base, drop_unlabeled=False)
+    return X.iloc[[-1]]
