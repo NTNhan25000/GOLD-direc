@@ -63,6 +63,19 @@ Script in **PASS/FAIL cho từng mục** kèm lệnh sửa nếu thiếu, rồi 
 Kịch bản chi tiết từng phút (gồm bộ câu hỏi phản biện và phương án dự phòng khi sự cố):
 [`HUONG_DAN_DEMO.md`](HUONG_DAN_DEMO.md).
 
+## Folder `.joblib` độc lập
+
+[`model_joblib/`](model_joblib/) là folder **tự chạy được một mình**, chứa 4 file mô hình đã
+huấn luyện + code nạp + dữ liệu cần thiết. Không import gì từ `gold_price_fullstack/`:
+
+```bash
+.venv/bin/python model_joblib/joblib_loader.py        # mô tả model + dự báo + tái lập bảng Test
+.venv/bin/python -m pytest model_joblib/test_joblib_loader.py -q   # 6 test
+```
+
+Chi tiết (thứ tự imputer → model, lỗi chuẩn hoá 2 lần, lưu ý phiên bản sklearn/xgboost):
+[`model_joblib/README.md`](model_joblib/README.md).
+
 ## Slide thuyết trình
 
 Bộ slide chính thức: **`slides_thuyet_trinh_nhom8.pptx` — 10 slide, nền trắng, 16:9**
@@ -100,6 +113,7 @@ python -m pytest gold_price_fullstack/tests -q
 ├── KICH_BAN_THUYET_TRINH.md               # kịch bản thuyết trình 10 slide + Q&A
 ├── slides_thuyet_trinh_nhom8.pptx         # bộ slide 10 slide (nền trắng)
 ├── make_slides.py                         # dựng lại .pptx từ CSV (không gõ tay số)
+├── model_joblib/                          # folder .joblib độc lập (loader + test + data)
 ├── make_importance_chart.py               # vẽ biểu đồ importance cỡ slide
 ├── check_slides.py                        # dò tràn chữ / đè lớp trong .pptx
 ├── preview_slides.py                      # render .pptx ra PNG để tự kiểm tra layout

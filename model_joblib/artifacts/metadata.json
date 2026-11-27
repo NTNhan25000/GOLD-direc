@@ -1,0 +1,85 @@
+{
+  "target": "Gold_Close",
+  "features": [
+    "close_lag_0",
+    "close_lag_1",
+    "close_lag_2",
+    "close_lag_3",
+    "close_lag_5",
+    "close_lag_10",
+    "sma_5",
+    "volatility_5",
+    "sma_10",
+    "volatility_10",
+    "sma_20",
+    "volatility_20",
+    "rsi_14",
+    "gold_return_1d",
+    "gold_range",
+    "DXY_Close",
+    "DXY_Close_return_1d",
+    "US10Y_Close",
+    "US10Y_Close_return_1d",
+    "SP500_Close",
+    "SP500_Close_return_1d",
+    "WTI_Close",
+    "WTI_Close_return_1d",
+    "Silver_Close",
+    "Silver_Close_return_1d"
+  ],
+  "macro_columns": [
+    "DXY_Close",
+    "US10Y_Close",
+    "SP500_Close",
+    "WTI_Close",
+    "Silver_Close"
+  ],
+  "split": {
+    "train_end": "2021-12-31",
+    "val_end": "2023-12-31",
+    "test": "2024-01-01 onward"
+  },
+  "n_samples": {
+    "train": 1739,
+    "val": 502,
+    "test": 252
+  },
+  "n_sessions": 2514,
+  "data_range": {
+    "start": "2015-01-02",
+    "end": "2024-12-31"
+  },
+  "best_k": {
+    "RandomForest": 11,
+    "XGBoost": 165
+  },
+  "test_metrics": {
+    "Naive": {
+      "MAE": 18.038101438492063,
+      "RMSE": 23.74303699159525,
+      "MAPE_pct": 0.7444674454772797,
+      "R2": 0.9890930439301985
+    },
+    "LinearRegression": {
+      "MAE": 22.05432709103347,
+      "RMSE": 27.06961631601664,
+      "MAPE_pct": 0.9062700066961842,
+      "R2": 0.9858226446176017
+    },
+    "RandomForest": {
+      "MAE": 364.52873584881263,
+      "RMSE": 426.324280163371,
+      "MAPE_pct": 14.398212639784228,
+      "R2": -2.5165043624052523
+    },
+    "XGBoost": {
+      "MAE": 369.7295866466704,
+      "RMSE": 432.97809636477245,
+      "MAPE_pct": 14.597088776353285,
+      "R2": -2.6271279754452257
+    }
+  },
+  "data_file": "/home/user/GOLD-direc/gold_price_fullstack/data/raw/gold_forecast_dataset.csv",
+  "trained_at": "2026-11-24 08:59:09",
+  "training_seconds": 4.0
+}
